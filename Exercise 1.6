@@ -1,0 +1,95 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Exercise1_6 : MonoBehaviour
+{
+
+    private Perlin car;
+
+    private void Start()
+    {
+        car = new Perlin();
+    }
+
+    private void FixedUpdate()
+    {
+        car.Update();
+        car.CheckEdges();
+    }
+}
+
+public class Perlin
+{
+    Vector2 Location, Acceleration, Velocity;
+
+    float TopSpeed;
+
+    Vector2 MaxPos, MinPos;
+
+    private GameObject perlin = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+    public Perlin()
+    {
+
+        FindWindowLimits();
+        Location = Vector2.zero;
+        Velocity = Vector2.zero;
+        TopSpeed = 10f;
+
+        Renderer r = perlin.GetComponent<Renderer>();
+        r.material = new Material(Shader.Find("Diffuse"));
+
+    }
+
+
+
+    public void Update()
+    {
+
+        Acceleration = new Vector2(Mathf.PerlinNoise(Time.time * .5f, 0.0f), Mathf.PerlinNoise(Time.time * .5f, 0.0f));
+        Acceleration.Normalize();
+        Acceleration *= Mathf.PerlinNoise(Time.time * .5f, 0.0f);
+
+        Velocity += Acceleration * Time.deltaTime;
+
+        Velocity = Vector2.ClampMagnitude(Velocity, TopSpeed);
+
+        Location += Velocity * Time.deltaTime;
+
+        perlin.transform.position = new Vector2(Location.x, Location.y);
+    }
+
+
+
+    public void CheckEdges()
+    {
+        if (Location.x > MaxPos.x)
+        {
+            Location.x += MaxPos.x - MinPos.x;
+        }
+        else if (Location.x < MinPos.x)
+        {
+            Location.x += MaxPos.x - MinPos.x;
+        }
+
+        if (Location.y > MaxPos.y)
+        {
+            Location.y += MaxPos.y - MinPos.y;
+        }
+        else if (Location.y < MinPos.y)
+        {
+            Location.y += MaxPos.y - MinPos.y;
+        }
+    }
+
+
+
+    private void FindWindowLimits()
+    {
+        Camera.main.orthographic = true;
+
+        MinPos = Camera.main.ScreenToWorldPoint(Vector2.zero);
+        MaxPos = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+    }
+}
