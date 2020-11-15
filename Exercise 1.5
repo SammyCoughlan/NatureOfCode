@@ -1,0 +1,103 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Car : MonoBehaviour {
+
+    private Example1 car;
+
+    private void Start()
+    {
+        car = new Example1();
+    }
+
+    private void FixedUpdate()
+    {
+        car.Update();
+        car.CheckEdges();
+    }
+}
+
+public class Example1
+ {
+    Vector2 Location, Acceleration, Velocity;
+
+    float TopSpeed;
+
+    Vector2 MaxPos, MinPos;
+
+    private GameObject car = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+    public Example1()
+    {
+
+        FindWindowLimits();
+        Location = Vector2.zero;
+        Velocity = Vector2.zero;
+        TopSpeed = 10f;
+
+        Renderer r = car.GetComponent<Renderer>();
+        r.material = new Material(Shader.Find("Diffuse"));
+
+    }
+
+
+
+    public void Update()
+    {
+        if (Input.GetButtonDown("down"))
+        {
+            Acceleration = new Vector2(1f, 0f);
+        }
+        if (Input.GetButtonDown("up"))
+        {
+            Acceleration = new Vector2(-1f, 0f);
+        }
+
+        if(Velocity.x < 0)
+        {
+            Velocity.x = 0;
+        }
+
+        Velocity += Acceleration * Time.deltaTime;
+
+        Velocity = Vector2.ClampMagnitude(Velocity, TopSpeed);
+
+        Location += Velocity * Time.deltaTime;
+
+        car.transform.position = new Vector2(Location.x, Location.y);
+    }
+
+
+
+    public void CheckEdges()
+    {
+        if (Location.x > MaxPos.x)
+        {
+            Location.x += MaxPos.x - MinPos.x;
+        }
+        else if (Location.x < MinPos.x)
+        {
+            Location.x += MaxPos.x - MinPos.x;
+        }
+
+        if (Location.y > MaxPos.y)
+        {
+            Location.y += MaxPos.y - MinPos.y;
+        }
+        else if (Location.y < MinPos.y)
+        {
+            Location.y += MaxPos.y - MinPos.y;
+        }
+    }
+
+
+
+    private void FindWindowLimits()
+    {
+        Camera.main.orthographic = true;
+
+        MinPos = Camera.main.ScreenToWorldPoint(Vector2.zero);
+        MaxPos = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+    }
+}
