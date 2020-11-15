@@ -1,0 +1,128 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Exercise1_7 : MonoBehaviour
+{
+
+    Mover_10 mover;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        mover = new Mover_10();
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 dir = mover.subtractVectors(mousePos, mover.location);
+        if(dir.x < (mover.location.x + 10))
+        {
+            mover.acceleration = mover.multiplyVector(dir.normalized, 5f);
+        }else
+        {
+            mover.acceleration = mover.multiplyVector(dir.normalized, .5f);
+        }
+        mover.Update();
+    }
+
+}
+
+public class Mover_10
+{
+
+    public Vector2 location, velocity, acceleration;
+    private float topSpeed;
+
+    private Vector2 minimumPos, maximumPos;
+
+    private GameObject mover = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+    public Mover_10()
+    {
+        findWindowLimits();
+        location = Vector2.zero; 
+        velocity = Vector2.zero;
+        acceleration = new Vector2(-0.1F, -1F);
+        topSpeed = 2;
+
+        Renderer r = mover.GetComponent<Renderer>();
+        r.material = new Material(Shader.Find("Diffuse"));
+    }
+
+    public void Update()
+    {
+        CheckEdges();
+        if (velocity.magnitude <= topSpeed)
+        {
+            velocity += acceleration * Time.deltaTime;
+
+            velocity = Vector2.ClampMagnitude(velocity, topSpeed);
+
+            location += velocity * Time.deltaTime;
+
+            mover.transform.position = new Vector3(location.x, location.y, 0);
+
+        }
+        else
+        {
+            velocity -= acceleration * Time.deltaTime;
+            location += velocity * Time.deltaTime;
+            mover.transform.position = new Vector3(location.x, location.y, 0);
+        }
+    }
+
+    public void CheckEdges()
+    {
+        if (location.x > maximumPos.x)
+        {
+            location.x -= maximumPos.x - minimumPos.x;
+            acceleration = Vector2.zero;
+            velocity = Vector2.zero;
+        }
+        else if (location.x < minimumPos.x)
+        {
+            location.x += maximumPos.x - minimumPos.x;
+            acceleration = Vector2.zero;
+            velocity = Vector2.zero;
+        }
+        if (location.y > maximumPos.y)
+        {
+            location.y -= maximumPos.y - minimumPos.y;
+            acceleration = Vector2.zero;
+            velocity = Vector2.zero;
+        }
+        else if (location.y < minimumPos.y)
+        {
+            location.y += maximumPos.y - minimumPos.y;
+            acceleration = Vector2.zero;
+            velocity = Vector2.zero;
+        }
+    }
+
+    private void findWindowLimits()
+    {
+        Camera.main.orthographic = true;
+        minimumPos = Camera.main.ScreenToWorldPoint(Vector2.zero);
+        maximumPos = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+    }
+
+
+    public Vector2 subtractVectors(Vector2 vectorA, Vector2 vectorB)
+    {
+        float newX = vectorA.x - vectorB.x;
+        float newY = vectorA.y - vectorB.y;
+        return new Vector2(newX, newY);
+    }
+
+    public Vector2 multiplyVector(Vector2 toMultiply, float scaleFactor)
+    {
+        float x = toMultiply.x * scaleFactor;
+        float y = toMultiply.y * scaleFactor;
+        return new Vector2(x, y);
+    }
+
+}
